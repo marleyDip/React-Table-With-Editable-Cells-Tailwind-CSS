@@ -1,12 +1,24 @@
-# React + Vite
+### 🧩 React Editable Table — Pure React + Tailwind
+## Build a fully editable data table with React + Tailwind CSS — no heavy table libraries. Includes inline cell editing, search, filtering, adding and deleting rows, and undo.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### ✨ Features
+- ✏️ Editable cells (click to edit, Enter to save, Esc to cancel)
+- 🔎 Search across rows
+- 🧰 Column filters
+- ➕ Add row / 🗑️ Delete row
+- ↩️ Undo recent actions (edit/add/delete)
+- ♿ Keyboard-friendly and responsive UI
+- 🪶 Zero table libs — React hooks + Tailwind
 
-Currently, two official plugins are available:
+### 🛠️ Tech Stack
+- React (hooks, controlled inputs)
+- Tailwind CSS
+- Optional state helpers: useReducer for history/undo
+  
+### 🧪 How It Works
+- State: rows stored in React state (or useReducer with a history stack for undo).
+- Edit: each cell is a controlled input when “active”.
+- Search/Filter: derived view over the same base rows.
+- Undo: push actions to a history stack; pop to revert.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Project Overview
