@@ -1,5 +1,5 @@
 # 🧩 React Editable Table — Pure React & Tailwind
-## Build a fully editable data table with React & Tailwind CSS — no heavy table libraries. Features include inline cell editing, search, filtering, adding and deleting rows, and undo.
+## Build a fully editable data table with React Hooks & Tailwind CSS — no heavy table libraries. Features include inline cell editing, search, filtering, row addition and deletion, and undo.
 
 ### ✨ Features
 - ✏️ Editable cells (click to edit, Enter to save, Esc to cancel)
@@ -13,6 +13,7 @@
 ### 🛠️ Tech Stack
 - React (hooks, controlled inputs)
 - Tailwind CSS
+- useMemo for filter data (search & select)
 - Optional state helpers: useReducer for history/undo
   
 ### 🧪 How It Works
