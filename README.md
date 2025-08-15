@@ -15,12 +15,6 @@
 - Tailwind CSS
 - useMemo for filter data (search & select)
 - UseRef for Edit Value
-  
-### 🧪 How It Works
-- State: rows stored in React state (or useReducer with a history stack for undo).
-- Edit: each cell is a controlled input when “active”.
-- Search/Filter: derived view over the same base rows.
-- Undo: push actions to a history stack; pop to revert.
 
 ### Project Overview
 
