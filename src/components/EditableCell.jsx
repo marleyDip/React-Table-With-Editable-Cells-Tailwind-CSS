@@ -60,7 +60,7 @@ function EditableCell({
   const handleCancel = () => {
     setEditValue(value);
     setIsValid(true);
-    oncancel();
+    onCancel();
   };
 
   if (isEditing) {
@@ -90,7 +90,7 @@ function EditableCell({
           <button
             className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 rounded-lg transform hover:scale-110 active:scale-95 transition-all duration-200"
             title="No Changes"
-            onClick={onCancel}
+            onClick={handleCancel}
           >
             <X size={16} />
           </button>

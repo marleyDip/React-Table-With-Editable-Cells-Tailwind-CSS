@@ -89,12 +89,17 @@ const getDepartmentColor = (department) => {
 
 function EditableTable() {
   const [data, setData] = useState(INITIAL_DATA);
-  //console.log(data);
+  //console.log(INITIAL_DATA);
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
+
   const [editingCell, setEditingCell] = useState(null);
-  const [history, setHistory] = useState(INITIAL_DATA);
+
+  const [history, setHistory] = useState([INITIAL_DATA]);
   const [historyIndex, setHistoryIndex] = useState(0);
+
+  //console.log(data);
+  console.log(history);
 
   const filteredData = useMemo(() => {
     let filtered = data;
@@ -148,16 +153,67 @@ function EditableTable() {
 
   const SaveToHistory = (newData) => {
     // Keep only the history entries up to the current position (discarding any "redo" items)
+    // array containing objects, it creates a shallow copy
+    // => newHistory = 0 index
     const newHistory = history.slice(0, historyIndex + 1);
 
     // Add the new data to the end
+    // => newHistory, newData = 1 index
     newHistory.push(newData);
 
     // Update the state with the new history array
     setHistory(newHistory);
 
     // Move the index pointer to the new last element
+    // => newHistory.length, 2 - 1 = 1 where initially 0
     setHistoryIndex(newHistory.length - 1);
+  };
+
+  const handleAddRow = () => {
+    const newId = (
+      Math.max(...data.map((row) => parseInt(row.id))) + 1
+    ).toString();
+
+    const newRow = {
+      id: newId,
+      name: "New Employee",
+      email: "employee@company.com",
+      role: "employee",
+      department: "Engineering",
+      salary: 60000,
+    };
+    const newData = [...data, newRow];
+    setData(newData);
+    SaveToHistory(newData);
+  };
+
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      const previousData = history[historyIndex - 1];
+      setData(previousData);
+      setHistoryIndex(historyIndex - 1);
+      setEditingCell(null);
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      setHistoryIndex((prevIndex) => {
+        const newIndex = prevIndex + 1;
+        setData(history[newIndex]); // load next data
+        setEditingCell(null);
+        return newIndex;
+      });
+    }
+  };
+
+  const handleDeleteRow = (id) => {
+    const newData = data.filter((row) => row.id !== id);
+    setData(newData);
+    SaveToHistory(newData);
+    if (editingCell?.rowId === id) {
+      setEditingCell(null);
+    }
   };
 
   return (
@@ -227,7 +283,10 @@ function EditableTable() {
       <div className="px-8 py-6 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
           <div className="flex flex-wrap items-center gap-3">
-            <button className="group flex items-center space-x-2 px-4 py-2.5 text-white font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl transition-all duration-300 ease-out backdrop-blur-sm">
+            <button
+              className="group flex items-center space-x-2 px-4 py-2.5 text-white font-semibold bg-gradient-to-r from-emerald-500 to-lime-600 hover:from-lime-600 hover:to-emerald-700 rounded-xl transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl transition-all duration-300 ease-out backdrop-blur-sm cursor-pointer"
+              onClick={handleAddRow}
+            >
               <div className="p-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white">
                 <Plus
                   size={18}
@@ -237,14 +296,30 @@ function EditableTable() {
               <span>Add Employee</span>
             </button>
 
-            <button className="group flex items-center space-x-2 px-4 py-2.5 text-white font-semibold bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 rounded-xl transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl transition-all duration-300 ease-out backdrop-blur-sm">
-              <div className="p-1 rounded-full bg-gradient-to-r from-green-500 to-sky-600 text-white">
+            <button
+              className="group flex items-center space-x-2 px-4 py-2.5 text-white font-semibold bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-orange-600 hover:to-yellow-700 rounded-xl transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl transition-all duration-300 ease-out backdrop-blur-sm cursor-pointer"
+              onClick={handleUndo}
+            >
+              <div className="p-1 rounded-full bg-gradient-to-br from-lime-500 to-emerald-600 text-white">
                 <RotateCcw
                   size={18}
                   className="transform group-hover:rotate-[360deg] group-hover:scale-105 group-hover:active:scale-95 transition-transform duration-200"
                 />
               </div>
               <span>Undo</span>
+            </button>
+
+            <button
+              className="group flex items-center space-x-2 px-4 py-2.5 text-white font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-indigo-600 hover:to-blue-700 rounded-xl transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl transition-all duration-300 ease-out backdrop-blur-sm cursor-pointer"
+              onClick={handleRedo}
+            >
+              <div className="p-1 rounded-full bg-gradient-to-br from-red-500 to-teal-600 text-white">
+                <RotateCcw
+                  size={18}
+                  className="transform group-hover:rotate-[360deg] group-hover:scale-105 group-hover:active:scale-95 transition-transform duration-200"
+                />
+              </div>
+              <span>Redo</span>
             </button>
           </div>
 
@@ -406,7 +481,7 @@ function EditableTable() {
                   </td>
 
                   <td>
-                    <button className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transform hover:scale-110 active:scale-95  transition-all duration-300">
+                    <button className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transform hover:scale-110 active:scale-95  transition-all duration-300" onClick={() => handleDeleteRow(row.id)}>
                       <Trash2 size={16} />
                     </button>
                   </td>

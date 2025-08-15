@@ -2,7 +2,7 @@ import EditableTable from "./components/EditableTable";
 
 function App() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-lime-200 via-teal-200 to-amber-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="space-y-8">
           <EditableTable />
