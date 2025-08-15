@@ -9,9 +9,157 @@ import {
   User,
   Users,
 } from "lucide-react";
+
 import EditableCell from "./EditableCell";
+import { useMemo, useState } from "react";
+
+const INITIAL_DATA = [
+  {
+    id: "1",
+    name: "Alexandra Chen",
+    email: "alexandra@company.com",
+    role: "Senior Developer",
+    department: "Engineering",
+    salary: 95000,
+  },
+  {
+    id: "2",
+    name: "Marcus Johnson",
+    email: "marcus@company.com",
+    role: "UX Designer",
+    department: "Design",
+    salary: 78000,
+  },
+  {
+    id: "3",
+    name: "Sarah Williams",
+    email: "sarah@company.com",
+    role: "Product Manager",
+    department: "Product",
+    salary: 105000,
+  },
+  {
+    id: "4",
+    name: "David Rodriguez",
+    email: "david@company.com",
+    role: "Data Analyst",
+    department: "Analytics",
+    salary: 72000,
+  },
+  {
+    id: "5",
+    name: "Emily Thompson",
+    email: "emily@company.com",
+    role: "DevOps Engineer",
+    department: "Engineering",
+    salary: 88000,
+  },
+  {
+    id: "6",
+    name: "James Wilson",
+    email: "james@company.com",
+    role: "Marketing Lead",
+    department: "Marketing",
+    salary: 82000,
+  },
+];
+
+const DEPARTMENTS = [
+  "Engineering",
+  "Design",
+  "Product",
+  "Analytics",
+  "Marketing",
+  "Sales",
+  "HR",
+];
+
+const getDepartmentColor = (department) => {
+  const colors = {
+    Engineering: "bg-blue-100 text-blue-800",
+    Design: "bg-purple-100 text-purple-800",
+    Product: "bg-green-100 text-green-800",
+    Analytics: "bg-orange-100 text-orange-800",
+    Marketing: "bg-pink-100 text-pink-800",
+    Sales: "bg-yellow-100 text-yellow-800",
+    HR: "bg-indigo-100 text-indigo-800",
+  };
+  return colors[department] || "bg-gray-100 text-gray-800";
+};
 
 function EditableTable() {
+  const [data, setData] = useState(INITIAL_DATA);
+  //console.log(data);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [editingCell, setEditingCell] = useState(null);
+  const [history, setHistory] = useState(INITIAL_DATA);
+  const [historyIndex, setHistoryIndex] = useState(0);
+
+  const filteredData = useMemo(() => {
+    let filtered = data;
+
+    if (searchTerm) {
+      filtered = filtered.filter((row) =>
+        Object.values(row).some((value) =>
+          value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+
+    if (departmentFilter) {
+      filtered = filtered.filter((row) => row.department === departmentFilter);
+    }
+    return filtered;
+  }, [data, searchTerm, departmentFilter]);
+
+  const getTotalSalary = () => {
+    return filteredData.reduce((sum, row) => sum + row.salary, 0);
+  };
+
+  const getAverageSalary = () => {
+    return filteredData.length > 0
+      ? Math.round(getTotalSalary() / filteredData.length)
+      : 0;
+  };
+
+  const handleEdit = (rowId, field) => {
+    setEditingCell({ rowId, field });
+  };
+
+  const handleCancel = () => {
+    setEditingCell(null);
+  };
+
+  const getFieldType = (field) => {
+    if (field === "email") return "email";
+    if (field === "salary") return "number";
+    return "text";
+  };
+
+  const handleSave = (rowId, field, value) => {
+    const newData = data.map((row) =>
+      row.id === rowId ? { ...row, [field]: value } : row
+    );
+    setData(newData);
+    SaveToHistory(newData);
+    setEditingCell(null);
+  };
+
+  const SaveToHistory = (newData) => {
+    // Keep only the history entries up to the current position (discarding any "redo" items)
+    const newHistory = history.slice(0, historyIndex + 1);
+
+    // Add the new data to the end
+    newHistory.push(newData);
+
+    // Update the state with the new history array
+    setHistory(newHistory);
+
+    // Move the index pointer to the new last element
+    setHistoryIndex(newHistory.length - 1);
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-r-gray-100">
       {/* info */}
@@ -38,7 +186,7 @@ function EditableTable() {
                 size={16}
                 className="transform group-hover:rotate-[360deg] group-hover:scale-110 transition-transform duration-300"
               />
-              <span className="font-semibold">5</span>
+              <span className="font-semibold">{filteredData.length}</span>
               <span className="text-indigo-100">Employees</span>
             </div>
 
@@ -47,7 +195,13 @@ function EditableTable() {
                 size={16}
                 className="transform group-hover:rotate-[360deg] group-hover:scale-110 transition-transform duration-300"
               />
-              <span className="font-semibold">Total: 896566</span>
+
+              <span className="font-semibold">
+                {getTotalSalary().toLocaleString("en-BD", {
+                  style: "currency",
+                  currency: "BDT",
+                })}
+              </span>
               <span className="text-indigo-100">Total</span>
             </div>
 
@@ -56,7 +210,12 @@ function EditableTable() {
                 size={16}
                 className="transform group-hover:rotate-[360deg] group-hover:scale-110 transition-transform duration-300"
               />
-              <span className="font-semibold">Avg: 965966</span>
+              <span className="font-semibold">
+                {getAverageSalary().toLocaleString("bn-BD", {
+                  style: "currency",
+                  currency: "BDT",
+                })}
+              </span>
               <span className="text-indigo-100">Avg</span>
             </div>
           </div>
@@ -98,8 +257,10 @@ function EditableTable() {
 
               <input
                 type="text"
+                values={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search Employees"
-                className="w-full sm:w-80 bg-white shadow-md rounded-xl pl-12 pr-4 py-3 border border-gray-300  focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                className="w-full sm:w-80 bg-white shadow-md hover:shadow-lg rounded-xl appearance-none pl-12 pr-8 py-3 border border-gray-300  focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 ease-out"
               />
             </div>
 
@@ -111,12 +272,17 @@ function EditableTable() {
 
               <select
                 type="text"
-                placeholder="Search Employees"
+                value={departmentFilter}
+                onChange={(e) => setDepartmentFilter(e.target.value)}
+                placeholder="Search Departments"
                 className="w-full sm:w-80 bg-white shadow-md hover:shadow-lg rounded-xl appearance-none cursor-pointer pl-12 pr-4 py-3 border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 ease-out"
               >
                 <option value="">All Department</option>
-                {/* dynamic content */}
-                {/* dynamic content */}
+                {DEPARTMENTS.map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -156,37 +322,115 @@ function EditableTable() {
           </thead>
 
           <tbody className="divide-y divide-gray-100">
-            <tr
-              className={`hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300`}
-            >
-              <td className="px-8 py-4">
-                <EditableCell />
-                {/* map method to get data from object */}
-                {/* map method to get data from object */}
-              </td>
+            {filteredData.map((row, index) => {
+              return (
+                <tr
+                  className={`hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 ${
+                    index % 2 === 0 ? "bg-white" : "bg-gray-50/100"
+                  }`}
+                >
+                  <td className="px-8 py-4">
+                    <EditableCell
+                      value={row.name}
+                      rowId={row.id}
+                      filled="name"
+                      isEditing={
+                        editingCell?.rowId === row.id &&
+                        editingCell?.field === "name"
+                      }
+                      onEdit={handleEdit}
+                      onCancel={handleCancel}
+                      type={getFieldType("name")}
+                      onSave={handleSave}
+                    />
+                  </td>
 
-              <td>
-                <button className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transform hover:scale-110 active:scale-95  transition-all duration-300">
-                  <Trash2 size={16} />
-                </button>
-              </td>
-            </tr>
+                  <td className="px-8 py-4">
+                    <EditableCell
+                      value={row.email}
+                      rowId={row.id}
+                      filled="email"
+                      isEditing={
+                        editingCell?.rowId === row.id &&
+                        editingCell?.field === "email"
+                      }
+                      onEdit={handleEdit}
+                      onCancel={handleCancel}
+                      type={getFieldType("email")}
+                      onSave={handleSave}
+                    />
+                  </td>
+
+                  <td className="px-8 py-4">
+                    <EditableCell
+                      value={row.role}
+                      rowId={row.id}
+                      filled="role"
+                      isEditing={
+                        editingCell?.rowId === row.id &&
+                        editingCell?.field === "role"
+                      }
+                      onEdit={handleEdit}
+                      onCancel={handleCancel}
+                      type={getFieldType("role")}
+                      onSave={handleSave}
+                    />
+                  </td>
+
+                  <td className="px-8 py-4">
+                    <div className="flex items-center">
+                      <span
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getDepartmentColor(
+                          row.department
+                        )}`}
+                      >
+                        {row.department}
+                      </span>
+                    </div>
+                  </td>
+
+                  <td className="px-8 py-4">
+                    <EditableCell
+                      value={row.salary}
+                      rowId={row.id}
+                      filled="salary"
+                      isEditing={
+                        editingCell?.rowId === row.id &&
+                        editingCell?.field === "salary"
+                      }
+                      onEdit={handleEdit}
+                      onCancel={handleCancel}
+                      type={getFieldType("salary")}
+                      onSave={handleSave}
+                    />
+                  </td>
+
+                  <td>
+                    <button className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transform hover:scale-110 active:scale-95  transition-all duration-300">
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
         {/* conditional rendering */}
-        {/* <div className="text-center py-16">
-          <div className="text-gray-400 mb-4">
-            <Users className="mx-auto mb-4 opacity-0" />
-          </div>
+        {filteredData.length === 0 && (
+          <div className="text-center py-16">
+            <div className="text-gray-400 mb-4">
+              <Users className="mx-auto mb-4 opacity-0" />
+            </div>
 
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">
-            No Employees Found
-          </h3>
-          <p className="text-gray-500">
-            Try adjusting your search criteria or filters
-          </p>
-        </div> */}
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              No Employees Found
+            </h3>
+            <p className="text-gray-500">
+              Try adjusting your search criteria or filters
+            </p>
+          </div>
+        )}
         {/* conditional rendering */}
       </div>
       {/* table */}
@@ -195,22 +439,28 @@ function EditableTable() {
       <div className="px-8 py-6 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200">
         <div className="flex flex-col lg:flex-row items-start justify-between lg:items-center space-y-3 lg:space-y-0">
           <div className="text-sm text-gray-600">
-            Showing <span>Employee Length 656</span> of{" "}
-            <span> User Length</span> Employees
+            Showing <span>{filteredData.length} </span> of
+            <span> {data.length}</span> Employees
           </div>
 
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
             <div className="flex items-center space-x-2">
               <DollarSign size={16} className="text-green-600" />
               <span>
-                Total Budget: <strong className="text-green-600">5656</strong>
+                Total Budget:
+                <strong className="text-green-600">
+                  ৳ {getTotalSalary().toLocaleString("bn-BD")}
+                </strong>
               </span>
             </div>
 
             <div className="flex items-center space-x-2">
               <TrendingUp size={16} className="text-green-600" />
               <span>
-                Average: <strong className="text-green-600">5656</strong>
+                Average:
+                <strong className="text-green-600">
+                  ৳ {getAverageSalary().toLocaleString("bn-BD")}
+                </strong>
               </span>
             </div>
           </div>
